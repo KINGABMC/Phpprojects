@@ -12,17 +12,17 @@ enum Menu: int {
 function selectClients(): array {
     return [
         [
-            "nom" => "Cissé",
-            "prenom" => "Ahmadou Bamba Momar",
-            "telephone" => "777661010",
-            "adresse" => "FO",
+            "telephone" => "123456789",
+            "nom" => "Doe",
+            "prenom" => "John",
+            "adresse" => "123 Main St",
             "dettes" => []
         ],
         [
-            "nom" => "Mbaye",
-            "prenom" => "Abdoulaye",
-            "telephone" => "777661011",
-            "adresse" => "FO1",
+            "telephone" => "987654321",
+            "nom" => "Smith",
+            "prenom" => "Jane",
+            "adresse" => "456 Elm St",
             "dettes" => []
         ]
     ];
@@ -42,16 +42,16 @@ function insertClient(array &$tabClients, array $client): void {
 }
 
 // Gestion des dettes
-function ajouterDette(array &$clients, string $tel, float $montant): void {
+function ajouterDette(array &$clients, string $tel): void {
     $date = date("Y-m-d H:i:s");
-    $reference = uniqid("DETTE réf:");
+    $reference = uniqid();
     foreach ($clients as &$client) {
         if ($client["telephone"] === $tel) {
             $client["dettes"][] = [
                 "reference" => $reference,
-                "montant" => $montant,
+                "montant" => (int)readline("Entrez le montant de la dette: "),
                 "date" => $date,
-                "montant_versé" => 0
+                "montant_versé" => (int)readline("Entrez le montant versé de la dette: ")
             ];
             break;
         }
@@ -68,20 +68,19 @@ function listerDettes(array $client): void {
     }
 }
 
-function payerDette(array &$clients, string $tel, string $ref, float $montant): bool {
+function payerDette(array &$clients, string $tel): bool {
     foreach ($clients as &$client) {
         if ($client["telephone"] === $tel) {
-            foreach ($client["dettes"] as &$dette) {
-                if ($dette["reference"] === $ref) {
-                    $reste = $dette["montant"] - $dette["montant_versé"];
-                    if ($montant > $reste) {
+            $montant_verse = (int)readline("Entrez le montant versé de la dette: ");
+           foreach ($client["dettes"] as &$dette) {
+                    $reste = $dette["montant"] - $montant_verse;
+                    if ($montant_verse > $reste) {
                         echo "Montant supérieur au reste dû.\n";
                         return false;
                     }
-                    $dette["montant_versé"] += $montant;
+                    $dette["montant_versé"] += $montant_verse;
                     echo "Dette mise à jour avec succès.\n";
                     return true;
-                }
             }
         }
     }
@@ -90,11 +89,12 @@ function payerDette(array &$clients, string $tel, string $ref, float $montant): 
 }
 
 // Fonctions Services
-function enregistrerClient(array &$tabClients, array $client): bool {
+function enregistrerClient(array &$tabClients, array $client):bool {
+    $tel = $client["telephone"];
     $result = selectClientByTel($tabClients, $client["telephone"]);
     if ($result === null) {
         insertClient($tabClients, $client);
-        ajouterDette($tabClients, $client["telephone"], 10000); // Exemple : dette initiale 10 000 FCFA
+        ajouterDette($tabClients, $tel);
         return true;
     }
     return false;
@@ -187,10 +187,8 @@ function principal() {
             Menu::PayerDette => payerDette(
                 $clients,
                 saisie_telephone("Entrez le téléphone du client: "),
-                saisieChampObligatoire("Entrez la référence de la dette: "),
-                (float)saisieChampObligatoire("Entrez le montant à payer: ")
             ),
-            Menu::Quitter => print("Au revoir !\n"),
+            Menu::Quitter => print("Au revoir à la prochaine!\n"),
             default => print("Choix invalide. Réessayez.\n"),
         };
     } while ($choix !== Menu::Quitter);
