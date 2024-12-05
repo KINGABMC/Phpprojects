@@ -19,8 +19,8 @@ function selectClients(): array {
             "dettes" => []
         ],
         [
-            "nom" => "Wane1",
-            "prenom" => "Baila1",
+            "nom" => "Mbaye",
+            "prenom" => "Abdoulaye",
             "telephone" => "777661011",
             "adresse" => "FO1",
             "dettes" => []
@@ -43,8 +43,8 @@ function insertClient(array &$tabClients, array $client): void {
 
 // Gestion des dettes
 function ajouterDette(array &$clients, string $tel, float $montant): void {
-    $date = date("Y-m-d");
-    $reference = uniqid("DETTE_");
+    $date = date("Y-m-d H:i:s");
+    $reference = uniqid("DETTE réf:");
     foreach ($clients as &$client) {
         if ($client["telephone"] === $tel) {
             $client["dettes"][] = [
@@ -128,7 +128,16 @@ function saisieTelephone_Obligatoireandunique(array $clients, string $sms): stri
     } while (true);
     
 }
-
+function saisie_telephone(string $sms): string {
+    do {
+        $value = trim(readline($sms));
+        if (!preg_match("/^[0-9]{9}$/", $value)) {
+            echo "Le numéro de téléphone doit avoir 9 chiffres.\n";
+           }else {
+            return $value;
+              }
+    } while (true);
+}
 function afficheClient(array $clients): void {
     if (count($clients) == 0) {
         echo "Pas de client à afficher.\n";
@@ -170,16 +179,14 @@ function principal() {
     do {
         $choix = menu();
         match ($choix) {
-            Menu::AjouterClient => enregistrerClient($clients, saisieClient($clients)) 
-                ? print("Client enregistré avec succès.\n") 
-                : print("Le numéro de téléphone existe déjà.\n"),
+            Menu::AjouterClient => enregistrerClient($clients, saisieClient($clients)) ? print("Client enregistré avec succès.\n") : print("Le numéro de téléphone existe déjà.\n"),
             Menu::ListerClients => afficheClient($clients),
             Menu::ListerDettesClient => listerDettes(
-                selectClientByTel($clients, saisieChampObligatoire("Entrez le téléphone du client: ")) ?? []
+                selectClientByTel($clients, saisie_telephone("Entrez le téléphone du client: ")) ?? []
             ),
             Menu::PayerDette => payerDette(
                 $clients,
-                saisieChampObligatoire("Entrez le téléphone du client: "),
+                saisie_telephone("Entrez le téléphone du client: "),
                 saisieChampObligatoire("Entrez la référence de la dette: "),
                 (float)saisieChampObligatoire("Entrez le montant à payer: ")
             ),
